@@ -26,3 +26,4 @@ dist-ssr
 # Private notes
 BENCHMARK.md
 .cursor/rules/project_context.mdc
+pr-body.txt
