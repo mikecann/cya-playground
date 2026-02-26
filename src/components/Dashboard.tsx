@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { useToast } from "./Toast";
 
 export function Dashboard({
   onSelectProject,
@@ -10,6 +11,7 @@ export function Dashboard({
 }) {
   const projects = useQuery(api.projects.list);
   const createProject = useMutation(api.projects.create);
+  const { addToast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -32,11 +34,13 @@ export function Dashboard({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void createProject({ name, description }).then(() => {
-                setName("");
-                setDescription("");
-                setShowCreateForm(false);
-              });
+              createProject({ name, description })
+                .then(() => {
+                  setName("");
+                  setDescription("");
+                  setShowCreateForm(false);
+                })
+                .catch((err: Error) => addToast(err.message));
             }}
             className="flex flex-col gap-3"
           >
@@ -98,15 +102,7 @@ export function Dashboard({
                 {project.description}
               </p>
               <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
-                <span>
-                  {project.memberCount}
-                  {project.memberCountCapped ? "+" : ""} members
-                </span>
-                <span>
-                  {project.taskCount}
-                  {project.taskCountCapped ? "+" : ""} tasks
-                </span>
-                <span className="ml-auto capitalize px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">
+                <span className="capitalize px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">
                   {project.role}
                 </span>
               </div>

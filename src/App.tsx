@@ -6,6 +6,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { SignIn } from "./components/SignIn";
 import { Dashboard } from "./components/Dashboard";
 import { ProjectView } from "./components/ProjectView";
+import { useToast } from "./components/Toast";
 
 type Route =
   | { page: "dashboard" }
@@ -31,6 +32,7 @@ export default function App() {
 
 function AuthenticatedApp({ userName }: { userName: string }) {
   const { signOut } = useAuthActions();
+  const { addToast } = useToast();
   const [route, setRoute] = useState<Route>({ page: "dashboard" });
 
   return (
@@ -54,7 +56,9 @@ function AuthenticatedApp({ userName }: { userName: string }) {
             {userName}
           </span>
           <button
-            onClick={() => void signOut()}
+            onClick={() => {
+              signOut().catch((err: Error) => addToast(err.message));
+            }}
             className="text-sm px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
           >
             Sign out

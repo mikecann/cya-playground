@@ -3,8 +3,6 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
 
-const COUNT_CAP = 100;
-
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -21,26 +19,8 @@ export const list = query({
       const project = await ctx.db.get("projects", membership.projectId);
       if (!project) continue;
 
-      const memberSample = await ctx.db
-        .query("projectMembers")
-        .withIndex("by_projectId", (q) =>
-          q.eq("projectId", membership.projectId),
-        )
-        .take(COUNT_CAP + 1);
-
-      const taskSample = await ctx.db
-        .query("tasks")
-        .withIndex("by_projectId", (q) =>
-          q.eq("projectId", membership.projectId),
-        )
-        .take(COUNT_CAP + 1);
-
       projects.push({
         ...project,
-        memberCount: Math.min(memberSample.length, COUNT_CAP),
-        memberCountCapped: memberSample.length > COUNT_CAP,
-        taskCount: Math.min(taskSample.length, COUNT_CAP),
-        taskCountCapped: taskSample.length > COUNT_CAP,
         role: membership.role,
       });
     }
@@ -174,6 +154,8 @@ export const cleanupProjectChildren = internalMutation({
       .take(BATCH_SIZE);
 
     for (const task of tasks) {
+      let taskChildrenRemaining = false;
+
       const comments = await ctx.db
         .query("comments")
         .withIndex("by_taskId", (q) => q.eq("taskId", task._id))
@@ -181,7 +163,7 @@ export const cleanupProjectChildren = internalMutation({
       for (const comment of comments) {
         await ctx.db.delete("comments", comment._id);
       }
-      if (comments.length === BATCH_SIZE) hasMore = true;
+      if (comments.length === BATCH_SIZE) taskChildrenRemaining = true;
 
       const taskLabels = await ctx.db
         .query("taskLabels")
@@ -190,9 +172,13 @@ export const cleanupProjectChildren = internalMutation({
       for (const tl of taskLabels) {
         await ctx.db.delete("taskLabels", tl._id);
       }
-      if (taskLabels.length === BATCH_SIZE) hasMore = true;
+      if (taskLabels.length === BATCH_SIZE) taskChildrenRemaining = true;
 
-      await ctx.db.delete("tasks", task._id);
+      if (taskChildrenRemaining) {
+        hasMore = true;
+      } else {
+        await ctx.db.delete("tasks", task._id);
+      }
     }
     if (tasks.length === BATCH_SIZE) hasMore = true;
 

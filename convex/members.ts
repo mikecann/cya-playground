@@ -1,6 +1,9 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import schema from "./schema";
+
+const memberFields = schema.tables.projectMembers.validator.fields;
 
 export const listByProject = query({
   args: { projectId: v.id("projects") },
@@ -39,11 +42,7 @@ export const add = mutation({
   args: {
     projectId: v.id("projects"),
     email: v.string(),
-    role: v.union(
-      v.literal("admin"),
-      v.literal("editor"),
-      v.literal("viewer"),
-    ),
+    role: memberFields.role,
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -90,11 +89,7 @@ export const add = mutation({
 export const updateRole = mutation({
   args: {
     memberId: v.id("projectMembers"),
-    role: v.union(
-      v.literal("admin"),
-      v.literal("editor"),
-      v.literal("viewer"),
-    ),
+    role: memberFields.role,
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

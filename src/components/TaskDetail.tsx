@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { useToast } from "./Toast";
 
 type Member = {
   _id: Id<"projectMembers">;
@@ -33,6 +34,7 @@ export function TaskDetail({
   const deleteComment = useMutation(api.comments.remove);
   const deleteTask = useMutation(api.tasks.remove);
 
+  const { addToast } = useToast();
   const [commentText, setCommentText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -64,12 +66,13 @@ export function TaskDetail({
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => {
-                      void updateTask({
+                      updateTask({
                         taskId,
                         title: editTitle,
                         description: editDescription,
-                      });
-                      setIsEditing(false);
+                      })
+                        .then(() => setIsEditing(false))
+                        .catch((err: Error) => addToast(err.message));
                     }}
                     className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
                   >
@@ -132,14 +135,14 @@ export function TaskDetail({
               <select
                 value={task.priority}
                 onChange={(e) => {
-                  void updateTask({
+                  updateTask({
                     taskId,
                     priority: e.target.value as
                       | "low"
                       | "medium"
                       | "high"
                       | "urgent",
-                  });
+                  }).catch((err: Error) => addToast(err.message));
                 }}
                 className="px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -156,12 +159,12 @@ export function TaskDetail({
               <select
                 value={task.assigneeId ?? ""}
                 onChange={(e) => {
-                  void updateTask({
+                  updateTask({
                     taskId,
                     assigneeId: e.target.value
                       ? (e.target.value as Id<"users">)
                       : undefined,
-                  });
+                  }).catch((err: Error) => addToast(err.message));
                 }}
                 className="px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -189,8 +192,9 @@ export function TaskDetail({
               <button
                 onClick={() => {
                   if (confirm("Delete this task?")) {
-                    void deleteTask({ taskId });
-                    onClose();
+                    deleteTask({ taskId })
+                      .then(() => onClose())
+                      .catch((err: Error) => addToast(err.message));
                   }
                 }}
                 className="px-3 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 text-sm transition-colors"
@@ -220,7 +224,11 @@ export function TaskDetail({
                         {new Date(comment._creationTime).toLocaleDateString()}
                       </span>
                       <button
-                        onClick={() => void deleteComment({ commentId: comment._id })}
+                        onClick={() => {
+                          deleteComment({ commentId: comment._id }).catch(
+                            (err: Error) => addToast(err.message),
+                          );
+                        }}
                         className="text-xs text-red-500 hover:underline"
                       >
                         delete
@@ -245,8 +253,9 @@ export function TaskDetail({
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!commentText.trim()) return;
-                void addComment({ taskId, content: commentText });
-                setCommentText("");
+                addComment({ taskId, content: commentText })
+                  .then(() => setCommentText(""))
+                  .catch((err: Error) => addToast(err.message));
               }}
               className="flex gap-2"
             >

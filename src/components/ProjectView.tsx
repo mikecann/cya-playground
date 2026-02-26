@@ -3,6 +3,7 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
 import { TaskDetail } from "./TaskDetail";
+import { useToast } from "./Toast";
 
 const STATUS_COLUMNS = [
   { key: "backlog" as const, label: "Backlog" },
@@ -30,6 +31,7 @@ export function ProjectView({
   const members = useQuery(api.members.listByProject, { projectId });
   const createTask = useMutation(api.tasks.create);
   const updateTask = useMutation(api.tasks.update);
+  const { addToast } = useToast();
 
   const [selectedTaskId, setSelectedTaskId] =
     useState<Id<"tasks"> | null>(null);
@@ -126,16 +128,18 @@ export function ProjectView({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void createTask({
+              createTask({
                 title: newTaskTitle,
                 description: "",
                 status: newTaskStatus,
                 priority: "medium",
                 projectId,
-              }).then(() => {
-                setNewTaskTitle("");
-                setShowCreateForm(false);
-              });
+              })
+                .then(() => {
+                  setNewTaskTitle("");
+                  setShowCreateForm(false);
+                })
+                .catch((err: Error) => addToast(err.message));
             }}
             className="flex gap-3 items-end"
           >
@@ -216,10 +220,9 @@ export function ProjectView({
                           {task.assigneeName}
                         </span>
                       )}
-                      {task.commentCount > 0 && (
+                      {task.hasComments && (
                         <span className="text-xs text-slate-400 ml-auto">
-                          {task.commentCount}
-                          {task.commentCountCapped ? "+" : ""} comments
+                          💬
                         </span>
                       )}
                     </div>
@@ -237,7 +240,9 @@ export function ProjectView({
           members={members ?? []}
           onClose={() => setSelectedTaskId(null)}
           onStatusChange={(status) => {
-            void updateTask({ taskId: selectedTaskId, status });
+            updateTask({ taskId: selectedTaskId, status }).catch(
+              (err: Error) => addToast(err.message),
+            );
           }}
         />
       )}

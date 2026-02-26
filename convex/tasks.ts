@@ -2,6 +2,9 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
+import schema from "./schema";
+
+const taskFields = schema.tables.tasks.validator.fields;
 
 export const listByProject = query({
   args: { projectId: v.id("projects") },
@@ -30,16 +33,15 @@ export const listByProject = query({
         assigneeName = assignee?.name ?? "Unknown";
       }
 
-      const commentSample = await ctx.db
+      const hasComments = await ctx.db
         .query("comments")
         .withIndex("by_taskId", (q) => q.eq("taskId", task._id))
-        .take(101);
+        .take(1);
 
       result.push({
         ...task,
         assigneeName,
-        commentCount: Math.min(commentSample.length, 100),
-        commentCountCapped: commentSample.length > 100,
+        hasComments: hasComments.length > 0,
       });
     }
 
@@ -88,18 +90,8 @@ export const create = mutation({
   args: {
     title: v.string(),
     description: v.string(),
-    status: v.union(
-      v.literal("backlog"),
-      v.literal("todo"),
-      v.literal("in_progress"),
-      v.literal("done"),
-    ),
-    priority: v.union(
-      v.literal("low"),
-      v.literal("medium"),
-      v.literal("high"),
-      v.literal("urgent"),
-    ),
+    status: taskFields.status,
+    priority: taskFields.priority,
     projectId: v.id("projects"),
     assigneeId: v.optional(v.id("users")),
     dueDate: v.optional(v.number()),
@@ -146,22 +138,8 @@ export const update = mutation({
     taskId: v.id("tasks"),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    status: v.optional(
-      v.union(
-        v.literal("backlog"),
-        v.literal("todo"),
-        v.literal("in_progress"),
-        v.literal("done"),
-      ),
-    ),
-    priority: v.optional(
-      v.union(
-        v.literal("low"),
-        v.literal("medium"),
-        v.literal("high"),
-        v.literal("urgent"),
-      ),
-    ),
+    status: v.optional(taskFields.status),
+    priority: v.optional(taskFields.priority),
     assigneeId: v.optional(v.id("users")),
     dueDate: v.optional(v.number()),
   },
