@@ -55,7 +55,11 @@ export default defineSchema({
     .index("by_projectId", ["projectId"])
     .index("by_assigneeId", ["assigneeId"])
     .index("by_projectId_and_status", ["projectId", "status"])
-    .index("by_projectId_and_assigneeId", ["projectId", "assigneeId"]),
+    .index("by_projectId_and_assigneeId", ["projectId", "assigneeId"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["projectId"],
+    }),
 
   comments: defineTable({
     content: v.string(),

@@ -4,12 +4,20 @@ import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
 import { useToast } from "./Toast";
 
+const PRIORITY_COLORS: Record<string, string> = {
+  urgent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  low: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
+};
+
 export function Dashboard({
   onSelectProject,
 }: {
-  onSelectProject: (projectId: Id<"projects">) => void;
+  onSelectProject: (projectId: Id<"projects">, taskId?: Id<"tasks">) => void;
 }) {
   const projects = useQuery(api.projects.list);
+  const myTasks = useQuery(api.tasks.listMyTasks);
   const createProject = useMutation(api.projects.create);
   const { addToast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -18,6 +26,39 @@ export function Dashboard({
 
   return (
     <div>
+      {/* My Tasks section */}
+      {myTasks && myTasks.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-3">My Tasks</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {myTasks.map((task) => (
+              <button
+                key={task._id}
+                onClick={() => onSelectProject(task.projectId, task._id)}
+                className="text-left p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+              >
+                <p className="text-sm font-medium mb-1 truncate">{task.title}</p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_COLORS[task.priority] ?? ""}`}
+                  >
+                    {task.priority}
+                  </span>
+                  <span className="text-xs text-slate-400 truncate">
+                    {task.projectName}
+                  </span>
+                  {task.dueDate && (
+                    <span className="text-xs text-slate-400 ml-auto shrink-0">
+                      {new Date(task.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Projects</h1>
         <button

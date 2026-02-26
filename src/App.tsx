@@ -10,7 +10,7 @@ import { useToast } from "./components/Toast";
 
 type Route =
   | { page: "dashboard" }
-  | { page: "project"; projectId: Id<"projects"> };
+  | { page: "project"; projectId: Id<"projects">; initialTaskId?: Id<"tasks"> };
 
 export default function App() {
   const user = useQuery(api.users.currentUser);
@@ -69,14 +69,15 @@ function AuthenticatedApp({ userName }: { userName: string }) {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {route.page === "dashboard" && (
           <Dashboard
-            onSelectProject={(projectId) =>
-              setRoute({ page: "project", projectId })
+            onSelectProject={(projectId, taskId) =>
+              setRoute({ page: "project", projectId, initialTaskId: taskId })
             }
           />
         )}
         {route.page === "project" && (
           <ProjectView
             projectId={route.projectId}
+            initialTaskId={route.initialTaskId}
             onBack={() => setRoute({ page: "dashboard" })}
           />
         )}

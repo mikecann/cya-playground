@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
 import schema from "./schema";
+import { Id } from "./_generated/dataModel";
 
 const taskFields = schema.tables.tasks.validator.fields;
 
@@ -258,5 +259,100 @@ export const cleanupTaskChildren = internalMutation({
     }
 
     return null;
+  },
+});
+
+export const listMyTasks = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const memberships = await ctx.db
+      .query("projectMembers")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .take(50);
+
+    const results: Array<{
+      _id: Id<"tasks">;
+      _creationTime: number;
+      title: string;
+      status: string;
+      priority: string;
+      projectId: Id<"projects">;
+      projectName: string;
+      assigneeId?: Id<"users">;
+      dueDate?: number;
+    }> = [];
+
+    for (const membership of memberships) {
+      const project = await ctx.db.get("projects", membership.projectId);
+      if (!project) continue;
+
+      const tasks = await ctx.db
+        .query("tasks")
+        .withIndex("by_projectId_and_assigneeId", (q) =>
+          q.eq("projectId", membership.projectId).eq("assigneeId", userId),
+        )
+        .take(10);
+
+      for (const task of tasks) {
+        results.push({
+          _id: task._id,
+          _creationTime: task._creationTime,
+          title: task.title,
+          status: task.status,
+          priority: task.priority,
+          projectId: task.projectId,
+          projectName: project.name,
+          assigneeId: task.assigneeId,
+          dueDate: task.dueDate,
+        });
+        if (results.length >= 50) break;
+      }
+      if (results.length >= 50) break;
+    }
+
+    return results;
+  },
+});
+
+export const searchInProject = query({
+  args: {
+    projectId: v.id("projects"),
+    query: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const membership = await ctx.db
+      .query("projectMembers")
+      .withIndex("by_projectId_and_userId", (q) =>
+        q.eq("projectId", args.projectId).eq("userId", userId),
+      )
+      .unique();
+    if (!membership) return [];
+
+    if (!args.query.trim()) return [];
+
+    const tasks = await ctx.db
+      .query("tasks")
+      .withSearchIndex("search_title", (q) =>
+        q.search("title", args.query).eq("projectId", args.projectId),
+      )
+      .take(20);
+
+    const result = [];
+    for (const task of tasks) {
+      let assigneeName: string | undefined;
+      if (task.assigneeId) {
+        const assignee = await ctx.db.get("users", task.assigneeId);
+        assigneeName = assignee?.name ?? "Unknown";
+      }
+      result.push({ ...task, assigneeName });
+    }
+
+    return result;
   },
 });

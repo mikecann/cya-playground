@@ -21,9 +21,11 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 export function ProjectView({
   projectId,
+  initialTaskId,
   onBack,
 }: {
   projectId: Id<"projects">;
+  initialTaskId?: Id<"tasks">;
   onBack: () => void;
 }) {
   const project = useQuery(api.projects.get, { projectId });
@@ -34,13 +36,21 @@ export function ProjectView({
   const { addToast } = useToast();
 
   const [selectedTaskId, setSelectedTaskId] =
-    useState<Id<"tasks"> | null>(null);
+    useState<Id<"tasks"> | null>(initialTaskId ?? null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskStatus, setNewTaskStatus] = useState<
     "backlog" | "todo" | "in_progress" | "done"
   >("todo");
   const [showMembers, setShowMembers] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const searchResults = useQuery(
+    api.tasks.searchInProject,
+    searchQuery.trim()
+      ? { projectId, query: searchQuery }
+      : "skip",
+  );
 
   if (project === undefined || tasks === undefined) {
     return <div className="text-slate-500">Loading...</div>;
@@ -60,6 +70,8 @@ export function ProjectView({
     );
   }
 
+  const isSearching = searchQuery.trim().length > 0;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -77,7 +89,14 @@ export function ProjectView({
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks..."
+            className="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+          />
           <button
             onClick={() => setShowMembers(!showMembers)}
             className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-sm transition-colors"
@@ -180,59 +199,102 @@ export function ProjectView({
         </div>
       )}
 
-      {tasks && tasks.length >= 200 && (
-        <p className="mb-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
-          Showing the first 200 tasks. Some tasks may not be visible.
-        </p>
-      )}
-
-      <div className="grid grid-cols-4 gap-4">
-        {STATUS_COLUMNS.map((col) => {
-          const columnTasks = (tasks ?? []).filter(
-            (t) => t.status === col.key,
-          );
-          return (
-            <div key={col.key}>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                  {col.label}
-                </h3>
-                <span className="text-xs text-slate-400">
-                  {columnTasks.length}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {columnTasks.map((task) => (
-                  <button
-                    key={task._id}
-                    onClick={() => setSelectedTaskId(task._id)}
-                    className="w-full text-left p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+      {isSearching ? (
+        <div>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+            {searchResults === undefined
+              ? "Searching..."
+              : `${searchResults.length} result${searchResults.length === 1 ? "" : "s"} for "${searchQuery}"`}
+          </p>
+          <div className="space-y-2">
+            {(searchResults ?? []).map((task) => (
+              <button
+                key={task._id}
+                onClick={() => setSelectedTaskId(task._id)}
+                className="w-full text-left p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+              >
+                <p className="text-sm font-medium mb-1">{task.title}</p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_COLORS[task.priority] ?? ""}`}
                   >
-                    <p className="text-sm font-medium mb-2">{task.title}</p>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_COLORS[task.priority] ?? ""}`}
+                    {task.priority}
+                  </span>
+                  <span className="text-xs text-slate-400 capitalize">
+                    {task.status.replace("_", " ")}
+                  </span>
+                  {task.assigneeName && (
+                    <span className="text-xs text-slate-400">
+                      {task.assigneeName}
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+            {searchResults?.length === 0 && (
+              <p className="text-sm text-slate-400 py-4 text-center">
+                No tasks match your search.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {tasks && tasks.length >= 200 && (
+            <p className="mb-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-md">
+              Showing the first 200 tasks. Some tasks may not be visible.
+            </p>
+          )}
+
+          <div className="grid grid-cols-4 gap-4">
+            {STATUS_COLUMNS.map((col) => {
+              const columnTasks = (tasks ?? []).filter(
+                (t) => t.status === col.key,
+              );
+              return (
+                <div key={col.key}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                      {col.label}
+                    </h3>
+                    <span className="text-xs text-slate-400">
+                      {columnTasks.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {columnTasks.map((task) => (
+                      <button
+                        key={task._id}
+                        onClick={() => setSelectedTaskId(task._id)}
+                        className="w-full text-left p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
                       >
-                        {task.priority}
-                      </span>
-                      {task.assigneeName && (
-                        <span className="text-xs text-slate-400">
-                          {task.assigneeName}
-                        </span>
-                      )}
-                      {task.hasComments && (
-                        <span className="text-xs text-slate-400 ml-auto">
-                          💬
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                        <p className="text-sm font-medium mb-2">{task.title}</p>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs px-1.5 py-0.5 rounded ${PRIORITY_COLORS[task.priority] ?? ""}`}
+                          >
+                            {task.priority}
+                          </span>
+                          {task.assigneeName && (
+                            <span className="text-xs text-slate-400">
+                              {task.assigneeName}
+                            </span>
+                          )}
+                          {task.hasComments && (
+                            <span className="text-xs text-slate-400 ml-auto">
+                              💬
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {selectedTaskId && (
         <TaskDetail
