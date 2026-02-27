@@ -16,6 +16,7 @@ export const getProjectOverview = query({
       .unique();
     if (!membership) return null;
 
+    // Intentional cap: for this overview dashboard, we only show up to 50 tasks
     const tasks = await ctx.db
       .query("tasks")
       .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
@@ -27,10 +28,11 @@ export const getProjectOverview = query({
           ? await ctx.db.get("users", task.assigneeId)
           : null;
 
+        // Intentional cap: we only display up to 10 labels per task in the UI
         const taskLabelRows = await ctx.db
           .query("taskLabels")
           .withIndex("by_taskId", (q) => q.eq("taskId", task._id))
-          .collect();
+          .take(10);
 
         const labels = await Promise.all(
           taskLabelRows.map((tl) => ctx.db.get("labels", tl.labelId)),
