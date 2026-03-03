@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as labels from "../labels.js";
 import type * as members from "../members.js";
 import type * as projects from "../projects.js";
+import type * as reporting from "../reporting.js";
 import type * as tasks from "../tasks.js";
 import type * as users from "../users.js";
 
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   labels: typeof labels;
   members: typeof members;
   projects: typeof projects;
+  reporting: typeof reporting;
   tasks: typeof tasks;
   users: typeof users;
 }>;
