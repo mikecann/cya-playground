@@ -4,6 +4,7 @@ import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
 import { TaskDetail } from "./TaskDetail";
 import { useToast } from "./Toast";
+import { ExportButton } from "./ExportButton";
 
 const STATUS_COLUMNS = [
   { key: "backlog" as const, label: "Backlog" },
@@ -78,6 +79,7 @@ export function ProjectView({
           </div>
         </div>
         <div className="flex gap-2">
+          <ExportButton projectId={projectId} />
           <button
             onClick={() => setShowMembers(!showMembers)}
             className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-sm transition-colors"

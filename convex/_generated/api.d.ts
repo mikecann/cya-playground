@@ -11,6 +11,7 @@
 import type * as activity from "../activity.js";
 import type * as auth from "../auth.js";
 import type * as comments from "../comments.js";
+import type * as exports from "../exports.js";
 import type * as http from "../http.js";
 import type * as labels from "../labels.js";
 import type * as members from "../members.js";
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   auth: typeof auth;
   comments: typeof comments;
+  exports: typeof exports;
   http: typeof http;
   labels: typeof labels;
   members: typeof members;
