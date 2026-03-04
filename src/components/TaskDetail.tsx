@@ -33,12 +33,15 @@ export function TaskDetail({
   const addComment = useMutation(api.comments.create);
   const deleteComment = useMutation(api.comments.remove);
   const deleteTask = useMutation(api.tasks.remove);
+  const addChecklistItem = useMutation(api.checklist.addItem);
+  const toggleChecklistItem = useMutation(api.checklist.toggleItem);
 
   const { addToast } = useToast();
   const [commentText, setCommentText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [newChecklistItem, setNewChecklistItem] = useState("");
 
   if (!task) {
     return null;
@@ -202,6 +205,65 @@ export function TaskDetail({
                 Delete
               </button>
             </div>
+          </div>
+
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mb-4">
+            <h3 className="font-semibold mb-3">
+              Checklist
+              {task.checklist && task.checklist.length > 0 && (
+                <span className="text-sm font-normal text-slate-400 ml-2">
+                  {task.checklist.filter((i) => i.completed).length}/
+                  {task.checklist.length}
+                </span>
+              )}
+            </h3>
+            <div className="space-y-1 mb-3">
+              {(task.checklist ?? []).map((item, idx) => (
+                <label
+                  key={idx}
+                  className="flex items-center gap-2 py-1 px-2 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => {
+                      toggleChecklistItem({ taskId, index: idx }).catch(
+                        (err: Error) => addToast(err.message),
+                      );
+                    }}
+                    className="rounded border-slate-300 dark:border-slate-600"
+                  />
+                  <span
+                    className={`text-sm ${item.completed ? "line-through text-slate-400" : ""}`}
+                  >
+                    {item.text}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newChecklistItem.trim()) return;
+                addChecklistItem({ taskId, text: newChecklistItem })
+                  .then(() => setNewChecklistItem(""))
+                  .catch((err: Error) => addToast(err.message));
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={newChecklistItem}
+                onChange={(e) => setNewChecklistItem(e.target.value)}
+                placeholder="Add checklist item..."
+                className="flex-1 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+              >
+                Add
+              </button>
+            </form>
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
