@@ -137,6 +137,48 @@ export const create = mutation({
   },
 });
 
+export const duplicate = mutation({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const task = await ctx.db.get("tasks", args.taskId);
+    if (!task) throw new Error("Task not found");
+
+    const membership = await ctx.db
+      .query("projectMembers")
+      .withIndex("by_projectId_and_userId", (q) =>
+        q.eq("projectId", task.projectId).eq("userId", userId),
+      )
+      .unique();
+    if (!membership) throw new Error("Not a member of this project");
+    if (membership.role === "viewer") {
+      throw new Error("Viewers cannot create tasks");
+    }
+
+    const newTaskId = await ctx.db.insert("tasks", {
+      title: `${task.title} (copy)`,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      projectId: task.projectId,
+      assigneeId: task.assigneeId,
+      dueDate: task.dueDate,
+    });
+
+    await ctx.runMutation(internal.activity.log, {
+      action: "duplicated_task",
+      userId,
+      projectId: task.projectId,
+      entityType: "task",
+      entityId: newTaskId,
+    });
+
+    return newTaskId;
+  },
+});
+
 export const update = mutation({
   args: {
     taskId: v.id("tasks"),

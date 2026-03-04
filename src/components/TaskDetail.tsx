@@ -33,6 +33,7 @@ export function TaskDetail({
   const addComment = useMutation(api.comments.create);
   const deleteComment = useMutation(api.comments.remove);
   const deleteTask = useMutation(api.tasks.remove);
+  const duplicateTask = useMutation(api.tasks.duplicate);
 
   const { addToast } = useToast();
   const [commentText, setCommentText] = useState("");
@@ -189,6 +190,16 @@ export function TaskDetail({
                   Edit
                 </button>
               )}
+              <button
+                onClick={() => {
+                  duplicateTask({ taskId })
+                    .then(() => addToast("Task duplicated"))
+                    .catch((err: Error) => addToast(err.message));
+                }}
+                className="px-3 py-1 rounded bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-sm transition-colors"
+              >
+                Duplicate
+              </button>
               <button
                 onClick={() => {
                   if (confirm("Delete this task?")) {
