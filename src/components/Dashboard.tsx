@@ -4,6 +4,40 @@ import { Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
 import { useToast } from "./Toast";
 
+function ProjectCard({
+  project,
+  onSelect,
+}: {
+  project: { _id: Id<"projects">; name: string; description: string; role: string };
+  onSelect: () => void;
+}) {
+  const taskCount = useQuery(api.taskCounts.getForProject, {
+    projectId: project._id,
+  });
+
+  return (
+    <button
+      onClick={onSelect}
+      className="text-left p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+    >
+      <h3 className="font-semibold mb-1">{project.name}</h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">
+        {project.description}
+      </p>
+      <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+        <span className="capitalize px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">
+          {project.role}
+        </span>
+        {taskCount != null && (
+          <span>
+            {taskCount} {taskCount === 1 ? "task" : "tasks"}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
 export function Dashboard({
   onSelectProject,
 }: {
@@ -92,21 +126,11 @@ export function Dashboard({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
-            <button
+            <ProjectCard
               key={project._id}
-              onClick={() => onSelectProject(project._id)}
-              className="text-left p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
-            >
-              <h3 className="font-semibold mb-1">{project.name}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">
-                {project.description}
-              </p>
-              <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
-                <span className="capitalize px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">
-                  {project.role}
-                </span>
-              </div>
-            </button>
+              project={project}
+              onSelect={() => onSelectProject(project._id)}
+            />
           ))}
         </div>
       )}

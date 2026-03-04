@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
 import schema from "./schema";
+import { taskCounts } from "./taskCounts";
 
 const taskFields = schema.tables.tasks.validator.fields;
 
@@ -121,6 +122,9 @@ export const create = mutation({
       dueDate: args.dueDate,
     });
 
+    const newTask = await ctx.db.get("tasks", taskId);
+    await taskCounts.insert(ctx, newTask!);
+
     await ctx.runMutation(internal.activity.log, {
       action: "created_task",
       userId,
@@ -211,7 +215,7 @@ export const remove = mutation({
       entityId: args.taskId,
     });
 
-    // Delete the task immediately
+    await taskCounts.delete(ctx, task);
     await ctx.db.delete("tasks", args.taskId);
 
     // Schedule cleanup of comments and labels in the background
