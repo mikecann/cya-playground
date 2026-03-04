@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
+import { incrementMutationCount } from "./platformStats";
 
 export const listByTask = query({
   args: { taskId: v.id("tasks") },
@@ -73,6 +74,7 @@ export const create = mutation({
       entityId: commentId,
     });
 
+    await incrementMutationCount(ctx);
     return commentId;
   },
 });
@@ -91,6 +93,7 @@ export const remove = mutation({
     }
 
     await ctx.db.delete("comments", args.commentId);
+    await incrementMutationCount(ctx);
     return null;
   },
 });

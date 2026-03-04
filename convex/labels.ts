@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { incrementMutationCount } from "./platformStats";
 
 export const listByProject = query({
   args: { projectId: v.id("projects") },
@@ -43,11 +44,13 @@ export const create = mutation({
       throw new Error("Viewers cannot create labels");
     }
 
-    return await ctx.db.insert("labels", {
+    const labelId = await ctx.db.insert("labels", {
       name: args.name,
       color: args.color,
       projectId: args.projectId,
     });
+    await incrementMutationCount(ctx);
+    return labelId;
   },
 });
 
@@ -73,10 +76,12 @@ export const addToTask = mutation({
       throw new Error("Viewers cannot modify task labels");
     }
 
-    return await ctx.db.insert("taskLabels", {
+    const taskLabelId = await ctx.db.insert("taskLabels", {
       taskId: args.taskId,
       labelId: args.labelId,
     });
+    await incrementMutationCount(ctx);
+    return taskLabelId;
   },
 });
 
@@ -113,6 +118,7 @@ export const removeFromTask = mutation({
       await ctx.db.delete("taskLabels", taskLabel._id);
     }
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });

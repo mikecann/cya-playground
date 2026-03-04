@@ -2,6 +2,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
+import { incrementMutationCount } from "./platformStats";
 
 export const list = query({
   args: {},
@@ -80,6 +81,7 @@ export const create = mutation({
       entityId: projectId,
     });
 
+    await incrementMutationCount(ctx);
     return projectId;
   },
 });
@@ -110,6 +112,7 @@ export const update = mutation({
       description: args.description,
     });
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });
@@ -137,6 +140,7 @@ export const remove = mutation({
       { projectId: args.projectId },
     );
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });

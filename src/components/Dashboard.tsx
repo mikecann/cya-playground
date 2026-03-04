@@ -44,6 +44,7 @@ export function Dashboard({
   onSelectProject: (projectId: Id<"projects">) => void;
 }) {
   const projects = useQuery(api.projects.list);
+  const platformStats = useQuery(api.platformStats.get);
   const createProject = useMutation(api.projects.create);
   const { addToast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -53,7 +54,14 @@ export function Dashboard({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Projects</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Projects</h1>
+          {platformStats && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              {platformStats.totalMutations.toLocaleString()} operations performed
+            </p>
+          )}
+        </div>
         <button
           onClick={() => setShowCreateForm(true)}
           className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
