@@ -87,6 +87,31 @@ export const get = query({
   },
 });
 
+export const getShared = query({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const task = await ctx.db.get("tasks", args.taskId);
+    if (!task) return null;
+
+    const project = await ctx.db.get("projects", task.projectId);
+
+    let assigneeName: string | undefined;
+    if (task.assigneeId) {
+      const assignee = await ctx.db.get("users", task.assigneeId);
+      assigneeName = assignee?.name ?? "Unknown";
+    }
+
+    return {
+      ...task,
+      projectName: project?.name ?? "Unknown",
+      assigneeName,
+    };
+  },
+});
+
 export const create = mutation({
   args: {
     title: v.string(),

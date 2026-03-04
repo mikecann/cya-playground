@@ -177,6 +177,18 @@ export function TaskDetail({
               </select>
             </div>
             <div className="ml-auto flex gap-2 self-end">
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/task/${taskId}`;
+                  navigator.clipboard
+                    .writeText(url)
+                    .then(() => addToast("Link copied to clipboard"))
+                    .catch(() => addToast("Failed to copy link"));
+                }}
+                className="px-3 py-1 rounded bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-sm transition-colors"
+              >
+                Copy link
+              </button>
               {!isEditing && (
                 <button
                   onClick={() => {
