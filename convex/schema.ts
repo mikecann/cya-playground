@@ -51,6 +51,9 @@ export default defineSchema({
     projectId: v.id("projects"),
     assigneeId: v.optional(v.id("users")),
     dueDate: v.optional(v.number()),
+    checklist: v.optional(
+      v.array(v.object({ text: v.string(), completed: v.boolean() })),
+    ),
   })
     .index("by_projectId", ["projectId"])
     .index("by_assigneeId", ["assigneeId"])
