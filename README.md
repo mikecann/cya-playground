@@ -18,12 +18,12 @@ Scored out of 40. Each PR is worth up to 4 points: 3 for the primary test (did t
 
 | Tool | PR1 | PR2 | PR3 | PR4 | PR5 | PR6 | PR7 | PR8 | PR9 | PR10 | **Total (/40)** |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| [**Qodo**](https://www.qodo.ai/) | 1 | 3 | 4 | 4 | 3 | 3 | 4 | 3 | 3 | 4 | **32** |
-| [**Copilot**](https://github.com/features/copilot) | 1 | 3 | 4 | 4 | 4 | 3 | 2 | 3 | 3 | 4 | **31** |
-| [**Cubic**](https://www.cubic.dev/) | 3 | 3 | 3 | 3 | 0 | 3 | 2 | 3 | 3 | 3 | **26** |
-| [**CodeRabbit**](https://coderabbit.ai/) | -1 | 3 | 4 | 0 | 0 | 4 | 4 | 3 | 4 | 3 | **24** |
-| [**Greptile**](https://www.greptile.com/) | 1 | 3 | 3 | 4 | 0 | 3 | -1 | 3 | 3 | 4 | **23** |
-| [**CodeAnt AI**](https://www.codeant.ai/) | -1 | -1 | 0 | 0 | 3 | 3 | 1 | 3 | 1 | 4 | **13** |
+| 🥇 [**Qodo**](https://www.qodo.ai/) | 1 | 3 | 4 | 4 | 3 | 3 | 4 | 3 | 3 | 4 | **32** |
+| 🥇 [**Copilot**](https://github.com/features/copilot) | 1 | 3 | 4 | 4 | 4 | 3 | 2 | 3 | 3 | 4 | **31** |
+| 🥈 [**Cubic**](https://www.cubic.dev/) | 3 | 3 | 3 | 3 | 0 | 3 | 2 | 3 | 3 | 3 | **26** |
+| 🥈 [**CodeRabbit**](https://coderabbit.ai/) | -1 | 3 | 4 | 0 | 0 | 4 | 4 | 3 | 4 | 3 | **24** |
+| 🥈 [**Greptile**](https://www.greptile.com/) | 1 | 3 | 3 | 4 | 0 | 3 | -1 | 3 | 3 | 4 | **23** |
+| 🥉 [**CodeAnt AI**](https://www.codeant.ai/) | -1 | -1 | 0 | 0 | 3 | 3 | 1 | 3 | 1 | 4 | **13** |
 | [**Sourcery**](https://sourcery.ai/) | 0 | 1 | 1 | 0 | 3 | 4 | -1 | 0 | 1 | 0 | **9** |
 | [**Macroscope**](https://macroscope.com/) | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 3 | 0 | 3 | **9** |
 | [**Graphite**](https://graphite.com/features/ai-review) | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **3** |
