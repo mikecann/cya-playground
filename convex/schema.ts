@@ -85,4 +85,8 @@ export default defineSchema({
     .index("by_taskId", ["taskId"])
     .index("by_labelId", ["labelId"])
     .index("by_taskId_and_labelId", ["taskId", "labelId"]),
+
+  platformStats: defineTable({
+    totalMutations: v.number(),
+  }),
 });

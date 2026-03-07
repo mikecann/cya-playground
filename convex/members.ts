@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import schema from "./schema";
+import { incrementMutationCount } from "./platformStats";
 
 const memberFields = schema.tables.projectMembers.validator.fields;
 
@@ -82,6 +83,7 @@ export const add = mutation({
       role: args.role,
     });
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });
@@ -111,6 +113,7 @@ export const updateRole = mutation({
     }
 
     await ctx.db.patch("projectMembers", args.memberId, { role: args.role });
+    await incrementMutationCount(ctx);
     return null;
   },
 });
@@ -148,6 +151,7 @@ export const remove = mutation({
     }
 
     await ctx.db.delete("projectMembers", args.memberId);
+    await incrementMutationCount(ctx);
     return null;
   },
 });

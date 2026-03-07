@@ -4,6 +4,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
 import schema from "./schema";
 import { taskCounts } from "./taskCounts";
+import { incrementMutationCount } from "./platformStats";
 
 const taskFields = schema.tables.tasks.validator.fields;
 
@@ -133,6 +134,7 @@ export const create = mutation({
       entityId: taskId,
     });
 
+    await incrementMutationCount(ctx);
     return taskId;
   },
 });
@@ -183,6 +185,7 @@ export const update = mutation({
       entityId: args.taskId,
     });
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });
@@ -225,6 +228,7 @@ export const remove = mutation({
       { taskId: args.taskId },
     );
 
+    await incrementMutationCount(ctx);
     return null;
   },
 });
