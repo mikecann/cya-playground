@@ -29,6 +29,9 @@ export function ProjectView({
   const project = useQuery(api.projects.get, { projectId });
   const tasks = useQuery(api.tasks.listByProject, { projectId });
   const members = useQuery(api.members.listByProject, { projectId });
+  const activityCount = useQuery(api.metrics.getProjectActivityCount, {
+    projectId,
+  });
   const createTask = useMutation(api.tasks.create);
   const updateTask = useMutation(api.tasks.update);
   const { addToast } = useToast();
@@ -75,6 +78,11 @@ export function ProjectView({
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {project.description}
             </p>
+            {activityCount && (
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                {activityCount.totalEvents} activity events
+              </p>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
